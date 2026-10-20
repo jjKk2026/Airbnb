@@ -1,0 +1,32 @@
+name: Agente de mensajes Airbnb
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # cada 30 minutos (hora UTC; GitHub puede retrasarse unos minutos)
+  workflow_dispatch:          # botón "Run workflow" para lanzarlo a mano
+
+# Solo puede leer el código; no puede cambiar nada del repo.
+permissions:
+  contents: read
+
+# Nunca dos ejecuciones a la vez (evita borradores duplicados).
+concurrency:
+  group: agente-airbnb
+  cancel-in-progress: false
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python agente.py
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_TOKEN: ${{ secrets.GMAIL_TOKEN }}
+          ALOJAMIENTOS_YAML: ${{ secrets.ALOJAMIENTOS_YAML }}

@@ -8,10 +8,16 @@ Uso:
   python agente.py --prueba ejemplos/mensaje.txt   # prueba sin Gmail
   python agente.py                                 # revisa Gmail una vez
   python agente.py --cada 5                        # revisa Gmail cada 5 minutos
+  python agente.py --conectar                      # da permiso a Gmail (una vez, en tu ordenador)
+
+En GitHub Actions lee las claves de los secretos GMAIL_TOKEN y ALOJAMIENTOS_YAML
+y no escribe en el registro el contenido de los mensajes.
 """
 
 import argparse
 import base64
+import json
+import os
 import sys
 import time
 from email.message import EmailMessage
@@ -25,6 +31,7 @@ from pydantic import BaseModel, Field
 RAIZ = Path(__file__).parent
 CONFIG = RAIZ / "config" / "alojamientos.yaml"
 MODELO = "claude-opus-5-5"
+EN_GITHUB = os.environ.get("GITHUB_ACTIONS") == "true"
 
 # Correos de Airbnb que nos interesan (mensajes de huéspedes) y aún no procesados.
 CONSULTA_GMAIL = "from:airbnb.com is:unread -label:Airbnb-Agente newer_than:7d"
@@ -48,7 +55,9 @@ class Respuesta(BaseModel):
 
 
 def cargar_config() -> dict:
-    return yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
+    # En GitHub los datos reales vienen de un secreto, así no quedan en el repo.
+    texto = os.environ.get("ALOJAMIENTOS_YAML") or CONFIG.read_text(encoding="utf-8")
+    return yaml.safe_load(texto)
 
 
 def instrucciones(config: dict) -> str:
@@ -85,6 +94,10 @@ def redactar(cliente: anthropic.Anthropic, config: dict, texto_correo: str) -> R
 
 
 def mostrar(r: Respuesta) -> None:
+    if EN_GITHUB:
+        # El registro de GitHub no debe guardar datos de huéspedes.
+        print(f"Borrador creado · revisar: {'sí' if r.necesita_anfitrion else 'no'}")
+        return
     print("-" * 60)
     print(f"Huésped: {r.nombre_huesped} · Alojamiento: {r.alojamiento_id} · Urgencia: {r.urgencia}")
     print(f"Pide: {r.resumen}")
@@ -106,14 +119,21 @@ def conectar_gmail():
     from googleapiclient.discovery import build
 
     token = RAIZ / "token.json"
-    creds = Credentials.from_authorized_user_file(token, PERMISOS) if token.exists() else None
+    if os.environ.get("GMAIL_TOKEN"):
+        creds = Credentials.from_authorized_user_info(json.loads(os.environ["GMAIL_TOKEN"]), PERMISOS)
+    elif token.exists():
+        creds = Credentials.from_authorized_user_file(token, PERMISOS)
+    else:
+        creds = None
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
+            if EN_GITHUB:
+                sys.exit("Falta el secreto GMAIL_TOKEN o ha caducado. Repite --conectar.")
             flujo = InstalledAppFlow.from_client_secrets_file(RAIZ / "credentials.json", PERMISOS)
             creds = flujo.run_local_server(port=0)
-        token.write_text(creds.to_json())
+            token.write_text(creds.to_json())
     return build("gmail", "v1", credentials=creds)
 
 
@@ -183,7 +203,13 @@ def main() -> None:
     p = argparse.ArgumentParser(description="Agente de mensajes de Airbnb")
     p.add_argument("--prueba", metavar="ARCHIVO", help="Probar con un mensaje en un archivo de texto, sin Gmail")
     p.add_argument("--cada", type=int, metavar="MIN", help="Repetir cada N minutos")
+    p.add_argument("--conectar", action="store_true", help="Dar permiso a Gmail y crear token.json")
     args = p.parse_args()
+
+    if args.conectar:
+        conectar_gmail()
+        print("Listo. Copia TODO el contenido de token.json en el secreto GMAIL_TOKEN de GitHub.")
+        return
 
     cliente = anthropic.Anthropic()
     config = cargar_config()
