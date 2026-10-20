@@ -206,6 +206,10 @@ def main() -> None:
     p.add_argument("--conectar", action="store_true", help="Dar permiso a Gmail y crear token.json")
     args = p.parse_args()
 
+    if EN_GITHUB and not (os.environ.get("GMAIL_TOKEN") and os.environ.get("ANTHROPIC_API_KEY")):
+        print("Faltan los secretos GMAIL_TOKEN o ANTHROPIC_API_KEY. No hago nada hasta que los añadas.")
+        return
+
     if args.conectar:
         conectar_gmail()
         print("Listo. Copia TODO el contenido de token.json en el secreto GMAIL_TOKEN de GitHub.")
