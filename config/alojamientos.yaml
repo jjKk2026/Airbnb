@@ -1,0 +1,64 @@
+# Información de tus 3 anuncios. El agente SOLO responde con lo que pongas aquí.
+# Rellena cada campo. Si algo no aplica, bórralo.
+
+anfitrion:
+  nombre: "Tu nombre"
+  idioma_por_defecto: "español"   # el agente responde en el idioma del huésped
+  tono: "cercano, amable y breve"
+  firma: "Un saludo,\nTu nombre"
+
+# Temas que el agente NUNCA debe responder solo: te los deja para que los revises.
+escalar_siempre:
+  - reembolsos, descuentos o cambios de precio
+  - cancelaciones o cambios de fechas
+  - quejas, daños o problemas de seguridad
+  - pedir pagar o hablar fuera de Airbnb
+  - huéspedes extra, mascotas o fiestas (si no está claro en las normas)
+  - cualquier cosa que no esté en esta información
+
+alojamientos:
+  - id: centro
+    nombre_en_airbnb: "Apartamento Centro"   # tal como aparece en los correos de Airbnb
+    direccion_aproximada: "Calle Ejemplo 1, centro"
+    check_in: "a partir de las 15:00"
+    check_out: "antes de las 11:00"
+    llegada_autonoma: "Caja de llaves en el portal. El código se envía el día de llegada."
+    # El código real no lo pongas aquí si no quieres que el agente lo dé.
+    wifi: "Red: CENTRO_WIFI · La contraseña está en la nevera"
+    aparcamiento: "No hay plaza propia. Parking público Plaza Mayor a 200 m (unos 20 €/día)."
+    consigna_maletas: "No podemos guardar maletas. Hay consigna en la estación (Radical Storage)."
+    early_checkin: "Solo si el piso está libre. Confirmamos el mismo día por la mañana."
+    normas: "No fumar. No fiestas. No mascotas. Silencio de 22:00 a 8:00."
+    capacidad: 4
+    recomendaciones: "Bar La Esquina (tapas), Mercado Central, Museo de la ciudad."
+    notas: ""
+
+  - id: playa
+    nombre_en_airbnb: "Casa Playa"
+    direccion_aproximada: ""
+    check_in: ""
+    check_out: ""
+    llegada_autonoma: ""
+    wifi: ""
+    aparcamiento: ""
+    consigna_maletas: ""
+    early_checkin: ""
+    normas: ""
+    capacidad: 0
+    recomendaciones: ""
+    notas: ""
+
+  - id: loft
+    nombre_en_airbnb: "Loft Moderno"
+    direccion_aproximada: ""
+    check_in: ""
+    check_out: ""
+    llegada_autonoma: ""
+    wifi: ""
+    aparcamiento: ""
+    consigna_maletas: ""
+    early_checkin: ""
+    normas: ""
+    capacidad: 0
+    recomendaciones: ""
+    notas: ""
